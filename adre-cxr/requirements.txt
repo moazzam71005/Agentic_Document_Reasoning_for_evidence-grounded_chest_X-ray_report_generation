@@ -1,0 +1,36 @@
+# Core
+pyyaml>=6.0
+python-dotenv>=1.0
+pandas>=2.0
+numpy>=1.24
+Pillow>=10.0
+tqdm>=4.66
+
+# Vision evidence (run on Kaggle GPU or Colab — not needed for cloud-LLM-only runs)
+torch>=2.0
+torchvision>=0.15
+torchxrayvision>=1.2
+scikit-image>=0.22
+opencv-python-headless>=4.8
+
+# Retrieval
+sentence-transformers>=2.2
+faiss-cpu>=1.7
+rank-bm25>=0.2
+
+# PDF parsing (guidelines)
+pymupdf>=1.23
+
+# LLM providers (pick what you use — all are lightweight, no GPU)
+groq>=0.9
+google-generativeai>=0.8
+httpx>=0.27
+
+# Evaluation
+nltk>=3.8
+rouge-score>=0.1
+bert-score>=0.3.13
+scipy>=1.11
+
+# Optional local Ollama (only if you have a GPU machine)
+# ollama client uses httpx — no extra package needed

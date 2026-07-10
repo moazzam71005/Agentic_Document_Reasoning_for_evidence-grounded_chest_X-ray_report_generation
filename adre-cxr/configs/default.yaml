@@ -1,0 +1,46 @@
+# ADRE-CXR default configuration (tune α, top_k, tmax on dev set only)
+
+paths:
+  data_root: data/raw/chest-xrays-indiana-university
+  processed_dir: data/processed
+  guidelines_dir: data/guidelines
+  evidence_dir: data/processed/evidence
+  index_dir: data/processed/index
+
+data:
+  dev_size: 100
+  test_size: 400
+  random_seed: 42
+  min_findings_chars: 10
+  min_impression_chars: 5
+
+retrieval:
+  alpha: 0.5          # BM25 vs dense fusion weight (tune on dev)
+  top_k: 8
+  max_expanded_words: 500
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+
+agent:
+  tmax: 12            # max reasoning steps (images need fewer than EEG's 18)
+  max_views: 6
+  max_zone_analyses: 2
+
+generation:
+  stage_a_temperature: 0.0
+  stage_b_temperature: 0.25
+  stage_b_top_p: 0.9
+
+llm:
+  provider: groq      # groq | gemini | huggingface | ollama
+  # Override via .env; these are fallbacks
+  model: llama-3.3-70b-versatile
+
+vision:
+  classifier_weights: nih-rsna-14
+  zone_rows: 3        # upper / mid / lower
+  zone_cols: 2        # left / right
+
+evaluation:
+  bertscore_model: roberta-large
+  bootstrap_samples: 10000
+  significance_alpha: 0.05
