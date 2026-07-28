@@ -139,23 +139,69 @@ class LLMClient:
         self, messages, temperature, top_p, json_mode
     ) -> str:
         base = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        
+        # Convert messages format to a single text prompt for the /api/generate endpoint
+        prompt_parts = []
+        for msg in messages:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            if role == "system":
+                prompt_parts.append(f"System instruction:\n{content}\n")
+            elif role == "user":
+                prompt_parts.append(f"{content}")
+            else:
+                prompt_parts.append(f"{role.capitalize()}:\n{content}\n")
+        prompt = "\n".join(prompt_parts)
+
+        # Set temperature to 0.8 for Ollama to prevent reasoning models (like qwen3.5:2b)
+        # from entering infinite repetition loops in their thinking phases.
+        if temperature < 0.8:
+            temperature = 0.8
+
         payload: dict[str, Any] = {
             "model": self.model,
-            "messages": messages,
+            "prompt": prompt,
             "stream": False,
-            "options": {"temperature": temperature, "top_p": top_p},
+            "options": {
+                "temperature": temperature,
+                "top_p": top_p,
+                "presence_penalty": 0.0,
+                "frequency_penalty": 0.0,
+                "num_predict": 4096,
+                "num_ctx": 8192,
+                "repeat_penalty": 1.2,
+                "repeat_last_n": 128,
+            },
         }
-        if json_mode:
-            payload["format"] = "json"
 
-        resp = httpx.post(f"{base}/api/chat", json=payload, timeout=300.0)
+        resp = httpx.post(f"{base}/api/generate", json=payload, timeout=300.0)
         resp.raise_for_status()
-        return resp.json()["message"]["content"]
+        data = resp.json()
+        
+        # Debug: write metadata to scratch folder
+        try:
+            from pathlib import Path
+            import json
+            meta = {
+                "keys": list(data.keys()),
+                "response_length": len(data.get("response", "")),
+                "done": data.get("done"),
+                "done_reason": data.get("done_reason"),
+                "prompt_eval_count": data.get("prompt_eval_count"),
+                "eval_count": data.get("eval_count"),
+            }
+            Path("C:/Users/Taimoor/.gemini/antigravity-ide/brain/295a70d0-b709-40a7-a952-7ae143e39cee/scratch/ollama_debug.txt").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+        return data["response"]
 
 
 def parse_json_response(text: str) -> dict:
-    """Extract JSON from LLM response, tolerating markdown fences."""
+    """Extract JSON from LLM response, tolerating markdown fences and thinking blocks."""
+    import re
     text = text.strip()
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
     if text.startswith("```"):
         lines = text.split("\n")
         text = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])

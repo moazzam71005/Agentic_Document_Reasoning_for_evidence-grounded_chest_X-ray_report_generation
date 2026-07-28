@@ -17,7 +17,10 @@ class EvidenceState:
         self.evidence_items.append(item)
 
     def append_guidelines(self, passages: list[dict[str, Any]]) -> None:
-        self.guideline_passages.extend(passages)
+        seen_ids = {g["id"] for g in self.guideline_passages if "id" in g}
+        for p in passages:
+            if p.get("id") not in seen_ids:
+                self.guideline_passages.append(p)
 
     def to_context(self) -> str:
         lines = ["=== Patient ===", str(self.patient_metadata)]

@@ -43,12 +43,20 @@ class HybridRetriever:
         dense_norm = self._normalize(dense_norm)
 
         fused = self.alpha * bm25_norm + (1 - self.alpha) * dense_norm
-        top_indices = np.argsort(fused)[::-1][:top_k]
+        top_indices = np.argsort(fused)[::-1][:30]
 
         results = []
+        seen_texts = set()
         for idx in top_indices:
+            if len(results) >= top_k:
+                break
             chunk = self.chunks[idx]
             expanded = self._expand_context(chunk)
+            sig = " ".join(expanded.split()[:20])
+            if sig in seen_texts:
+                continue
+            seen_texts.add(sig)
+
             results.append({
                 "id": chunk["id"],
                 "score": float(fused[idx]),
@@ -60,6 +68,11 @@ class HybridRetriever:
     def _expand_context(self, chunk: dict, max_words: int = 500) -> str:
         """±1 sibling expansion under same parent_id."""
         parent = chunk.get("parent_id")
+        if parent is None:
+            text = chunk.get("title_path", "") + "\n" + chunk["text"]
+            words = text.split()
+            return " ".join(words[:max_words])
+
         sib_idx = chunk.get("sibling_idx", 0)
         siblings = [
             c for c in self.chunks

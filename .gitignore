@@ -1,14 +1,43 @@
+# Customization rules and notes environment
+.agents/
+.obsidian/
+
 # Local packaging and staging
 .kaggle_upload/
 *.zip
-
-# Temporary extraction/analysis files
 tmp/
+
+# Large binaries and weight files
+adre-cxr/weights/
+meta-llama/
+
+# Generated logs, outputs, and cache
+adre-cxr/output/
+adre-cxr/outputs/
+adre-cxr/batch_output/
+adre-cxr/output_report*.txt
+adre-cxr/scratch/
+pipeline_llama.log
 
 # Python caches
 __pycache__/
 *.py[cod]
+**/__pycache__/
+**/*.py[cod]
+**/*.ipynb_checkpoints/
+
+# In-folder data ignores
+adre-cxr/data/raw/
+adre-cxr/data/processed/
+adre-cxr/data/guidelines/*.pdf
+adre-cxr/*.index
+adre-cxr/*.pkl
+adre-cxr/data/processed/evidence/
+adre-cxr/.env
+adre-cxr/kaggle.json
 
 # OS/editor noise
 .DS_Store
 Thumbs.db
+**/.DS_Store
+**/Thumbs.db

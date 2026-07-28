@@ -12,7 +12,9 @@ def generate_narrative_report(
     llm: LLMClient | None = None,
 ) -> str:
     llm = llm or LLMClient()
-    prompt = f"""You are a board-certified radiologist writing a chest X-ray report.
+    prompt = f"""IMPORTANT: Do NOT output any thinking process, internal monologue, or '<think>' tags. Do NOT write any reasoning steps. Skip thinking entirely and output ONLY the text report.
+
+You are a board-certified radiologist writing a chest X-ray report.
 
 Write two sections exactly:
 FINDINGS:

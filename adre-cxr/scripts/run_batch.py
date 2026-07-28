@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run ADRE-CXR reports for a small batch of IU X-ray studies."""
+"""Run ADRE-CXR reports for a batch of IU X-ray studies."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ def _project_path(value: str | Path) -> Path:
     return path if path.is_absolute() else ROOT / path
 
 
-def _select_image(data_root: Path, projections: pd.DataFrame, uid: str) -> Path | None:
+def _select_image(data_root: Path, projections, uid: str) -> Path | None:
     rows = projections[projections["uid"].astype(str) == str(uid)]
     if rows.empty:
         return None

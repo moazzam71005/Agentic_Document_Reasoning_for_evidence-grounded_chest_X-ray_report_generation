@@ -28,7 +28,9 @@ def repair_report(
     if not errors:
         return report
 
-    prompt = f"""The following chest X-ray report has formatting errors: {errors}
+    prompt = f"""IMPORTANT: Do NOT output any thinking process, internal monologue, or '<think>' tags. Do NOT write any reasoning steps. Skip thinking entirely and output ONLY the corrected report.
+
+The following chest X-ray report has formatting errors: {errors}
 
 Repair it to include FINDINGS: and IMPRESSION: sections.
 Do not add unsupported content.
