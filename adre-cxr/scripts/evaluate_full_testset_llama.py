@@ -101,6 +101,15 @@ def save_cache(cache_path: Path, data: dict[str, str]):
     with open(cache_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
+def clean_predictions(pred_text: str) -> str:
+    # Truncate any text containing known leak markers
+    for marker in ["assistant\n", "assistant", "user\n", "user", "SmartyHeaderCode", "始化", "ForCanBeConverted", "smartypants"]:
+        if marker in pred_text:
+            pred_text = pred_text.split(marker)[0]
+    # Remove trailing formatting artifacts
+    pred_text = pred_text.strip()
+    return pred_text
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-id", default="/home/tukl/Taimoor/ADRE-CXR/weights/Llama3-OpenBioLLM-8B", help="Base model ID or path")
@@ -221,6 +230,7 @@ def main():
                 eos_token_id=terminators
             )
         pred_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True).strip()
+        pred_text = clean_predictions(pred_text)
         zero_cache[uid_key] = pred_text
         save_cache(zero_cache_path, zero_cache)
 
@@ -228,7 +238,7 @@ def main():
             print(f"[Zero-Shot] Cached {len(zero_cache)}/{len(val_records)} records...")
             sys.stdout.flush()
 
-    zero_shot_preds = [zero_cache[str(item["uid"])] for item in val_records]
+    zero_shot_preds = [clean_predictions(zero_cache[str(item["uid"])]) for item in val_records]
     print(f"[SUCCESS] Zero-Shot Pass Complete: All {len(zero_shot_preds)} predictions saved.")
 
     if args.stop_after_pass == 1:
@@ -273,6 +283,7 @@ def main():
                 eos_token_id=terminators
             )
         pred_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True).strip()
+        pred_text = clean_predictions(pred_text)
         few_cache[uid_key] = pred_text
         save_cache(few_cache_path, few_cache)
 
@@ -280,7 +291,7 @@ def main():
             print(f"[Few-Shot] Cached {len(few_cache)}/{len(val_records)} records...")
             sys.stdout.flush()
 
-    few_shot_preds = [few_cache[str(item["uid"])] for item in val_records]
+    few_shot_preds = [clean_predictions(few_cache[str(item["uid"])]) for item in val_records]
     print(f"[SUCCESS] Few-Shot Pass Complete: All {len(few_shot_preds)} predictions saved.")
 
     if args.stop_after_pass == 2:
@@ -326,6 +337,7 @@ def main():
                     eos_token_id=terminators
                 )
             pred_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True).strip()
+            pred_text = clean_predictions(pred_text)
             lora_cache[uid_key] = pred_text
             save_cache(lora_cache_path, lora_cache)
 
@@ -333,7 +345,7 @@ def main():
                 print(f"[LoRA FT] Cached {len(lora_cache)}/{len(val_records)} records...")
                 sys.stdout.flush()
 
-    lora_preds = [lora_cache[str(item["uid"])] for item in val_records]
+    lora_preds = [clean_predictions(lora_cache[str(item["uid"])]) for item in val_records]
     print(f"[SUCCESS] LoRA FT Pass Complete: All {len(lora_preds)} predictions saved.")
 
     # -------------------------------------------------------------

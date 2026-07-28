@@ -193,7 +193,7 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Run a quick SFT dry-run test without training")
     parser.add_argument("--eval-only", action="store_true", help="Only run baseline evaluation on validation split")
     parser.add_argument("--eval-limit", type=int, default=None, help="Limit number of validation records for evaluation speed")
-    parser.add_argument("--epochs", type=int, default=3, help="Number of SFT training epochs")
+    parser.add_argument("--epochs", type=int, default=6, help="Number of SFT training epochs")
     args = parser.parse_args()
 
     # Load project config
@@ -218,7 +218,7 @@ def main() -> None:
 
     # Reproducible splits mapping prepare_data.py
     rng = random.Random(42)
-    shuffled = parsed.copy()
+    shuffled = list(parsed)
     rng.shuffle(shuffled)
 
     # SFT data uses records at indices 500+ to ensure zero overlap with dev/test sets
@@ -228,13 +228,16 @@ def main() -> None:
     val_records = sft_records[train_size:]
     print(f"Data splits -> SFT Train: {len(train_records)}, Validation: {len(val_records)}")
 
+    # Ensure output dirs exist
+    (ROOT / "weights").mkdir(parents=True, exist_ok=True)
+
     # Load model and tokenizer
     print(f"Loading tokenizer for {args.model_id}...")
     tokenizer = transformers.AutoTokenizer.from_pretrained(args.model_id, trust_remote_code=True)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.eos_token_id
 
-    # Define standard Llama-3 instruct chat template if not present
+    # Fallback chat template for Llama 3 instruct format
     if tokenizer.chat_template is None:
         tokenizer.chat_template = (
             "{% set loop_messages = messages %}"

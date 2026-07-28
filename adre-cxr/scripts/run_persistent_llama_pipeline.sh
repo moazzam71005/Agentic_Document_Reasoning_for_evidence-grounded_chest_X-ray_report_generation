@@ -18,7 +18,7 @@ PROJECT_DIR="/home/tukl/Taimoor/ADRE-CXR"
 echo "--------------------------------------------------"
 echo "1. Running Supervised Fine-Tuning (SFT)..."
 echo "--------------------------------------------------"
-"$PYTHON_BIN" "$PROJECT_DIR/scripts/train_llama.py" --epochs 3
+"$PYTHON_BIN" "$PROJECT_DIR/scripts/train_llama.py" --epochs 6
 
 echo "--------------------------------------------------"
 echo "2. Running Zero-Shot, Few-Shot, and LoRA FT Evaluation..."
