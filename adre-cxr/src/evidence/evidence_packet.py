@@ -21,7 +21,7 @@ class Provenance:
     tool: str
 
     @classmethod
-    from_view(cls, view: ImageView) -> "Provenance":
+    def from_view(cls, view: ImageView) -> "Provenance":
         zone = view.params.get("row")
         if zone and view.params.get("col"):
             zone = f"{view.params['row']}_{view.params['col']}"

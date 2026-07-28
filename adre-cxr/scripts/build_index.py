@@ -31,7 +31,7 @@ def main() -> None:
         print(f"No PDFs found in {guide_dir}. Download Fleischner glossary first.")
         return
     build_index(chunks, out_dir, cfg["retrieval"]["embedding_model"])
-    print(f"Built index with {len(chunks)} chunks → {out_dir}")
+    print(f"Built index with {len(chunks)} chunks -> {out_dir}")
 
 
 if __name__ == "__main__":

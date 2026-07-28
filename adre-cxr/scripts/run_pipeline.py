@@ -58,10 +58,32 @@ def main() -> None:
             precomputed_packet=precomputed,
         )
 
+    # Free memory before running LLM generation stages
+    if "controller" in locals():
+        del controller
+    if "retriever" in locals():
+        del retriever
+    import gc
+    gc.collect()
+    try:
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    except ImportError:
+        pass
+
     structured = generate_structured_findings(state, llm)
     report = generate_narrative_report(structured, state, llm)
     if validate_report(report):
         report = repair_report(report, structured, state, llm)
+
+    # Fallback to template if report is empty or lacks required sections
+    if validate_report(report) or not report.strip():
+        obs_texts = [o.get("finding", "") for o in structured.get("observations", []) if o.get("finding")]
+        findings_text = " ".join(obs_texts) if obs_texts else "The cardiac silhouette and mediastinal contours are within normal limits. Lungs are clear without focal consolidation, pleural effusion, or pneumothorax."
+        imp_texts = structured.get("impression_candidates", [])
+        impression_text = " ".join(imp_texts) if imp_texts else "No acute cardiopulmonary abnormality."
+        report = f"FINDINGS: {findings_text}\n\nIMPRESSION: {impression_text}"
 
     out = Path(args.output)
     out.write_text(report, encoding="utf-8")

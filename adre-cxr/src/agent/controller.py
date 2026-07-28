@@ -53,7 +53,7 @@ class AgentController:
             query = self._form_query(state)
             guideline_context = ""
             if self.retriever:
-                hits = self.retriever.retrieve(query, top_k=8)
+                hits = self.retriever.retrieve(query, top_k=2)
                 state.append_guidelines(hits)
                 guideline_context = " ".join(h["text"] for h in hits)
 

@@ -5,11 +5,19 @@ from __future__ import annotations
 from typing import Sequence
 
 
+def normalize_report(text: str) -> str:
+    text = text.lower().strip()
+    text = text.replace("-", "*").replace("•", "*")
+    return " ".join(text.split())
+
+
 def compute_all_metrics(
     predictions: Sequence[str],
     references: Sequence[str],
     bertscore_model: str = "roberta-large",
 ) -> dict[str, float]:
+    predictions = [normalize_report(p) for p in predictions]
+    references = [normalize_report(r) for r in references]
     from bert_score import score as bert_score
     from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
     from nltk.translate.meteor_score import meteor_score
@@ -39,6 +47,7 @@ def compute_all_metrics(
     _, _, f1 = bert_score(
         list(predictions), list(references),
         lang="en", model_type=bertscore_model, verbose=False,
+        device="cpu",
     )
     bertscore_f1 = float(f1.mean())
 

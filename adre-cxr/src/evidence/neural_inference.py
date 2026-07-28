@@ -17,7 +17,7 @@ except ImportError:
 class NeuralInference:
     """Global pathology probabilities via TorchXRayVision DenseNet."""
 
-    def __init__(self, weights: str = "nih-rsna-14"):
+    def __init__(self, weights: str = "densenet121-res224-all"):
         if not HAS_TXRV:
             raise ImportError(
                 "torchxrayvision not installed. "
@@ -29,7 +29,13 @@ class NeuralInference:
 
     def predict(self, img: np.ndarray) -> dict[str, float]:
         """img: 2D grayscale float array."""
-        img_norm = xrv.datasets.normalize(img, 0, 255)
+        h, w = img.shape[:2]
+        if h != w:
+            size = min(h, w)
+            h_start = (h - size) // 2
+            w_start = (w - size) // 2
+            img = img[h_start : h_start + size, w_start : w_start + size]
+        img_norm = xrv.datasets.normalize(img, 255)
         tensor = torch.from_numpy(img_norm).unsqueeze(0).unsqueeze(0)
         with torch.no_grad():
             probs = torch.sigmoid(self.model(tensor))[0].numpy()
