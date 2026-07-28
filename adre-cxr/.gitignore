@@ -2,11 +2,17 @@
 data/raw/
 data/processed/
 data/guidelines/*.pdf
+data/*.zip
+*.zip
 
 # Indices and cached evidence
 *.index
 *.pkl
 data/processed/evidence/
+
+# Generated reports and local artifacts
+outputs/
+output_report*.txt
 
 # Secrets
 .env

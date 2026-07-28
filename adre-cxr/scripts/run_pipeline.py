@@ -29,6 +29,7 @@ def main() -> None:
     parser.add_argument("--index-dir", default="data/processed/index")
     parser.add_argument("--no-rag", action="store_true")
     parser.add_argument("--no-agentic", action="store_true")
+    parser.add_argument("--skip-neural", action="store_true")
     parser.add_argument("--output", default="output_report.txt")
     args = parser.parse_args()
 
@@ -51,7 +52,10 @@ def main() -> None:
         state = EvidenceState(patient_metadata={"indication": args.indication})
         state.append_evidence(packet.to_dict())
     else:
-        controller = AgentController(retriever=retriever, use_neural=precomputed is None)
+        controller = AgentController(
+            retriever=retriever,
+            use_neural=precomputed is None and not args.skip_neural,
+        )
         state = controller.run(
             args.study_id, args.image,
             {"indication": args.indication},

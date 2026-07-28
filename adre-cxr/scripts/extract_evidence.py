@@ -8,31 +8,37 @@ import json
 import sys
 from pathlib import Path
 
-import pandas as pd
-import yaml
-from tqdm import tqdm
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-
-from src.evidence.evidence_packet import build_evidence_packet
-from src.evidence.neural_inference import HAS_TXRV, NeuralInference
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-root", required=True)
     parser.add_argument("--split", default="dev", choices=["dev", "test"])
+    parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--config", default="configs/default.yaml")
     parser.add_argument("--skip-neural", action="store_true",
                         help="CPU-only mode: features + quality, no GPU classifier")
     args = parser.parse_args()
+
+    import pandas as pd
+    import yaml
+    from tqdm import tqdm
+
+    from src.evidence.evidence_packet import build_evidence_packet
+    from src.evidence.neural_inference import HAS_TXRV, NeuralInference
 
     with open(ROOT / args.config) as f:
         cfg = yaml.safe_load(f)
 
     split_path = ROOT / cfg["paths"]["processed_dir"] / f"{args.split}_split.json"
     records = json.loads(split_path.read_text())
+    if args.limit is not None:
+        records = records[args.offset : args.offset + args.limit]
+    elif args.offset:
+        records = records[args.offset:]
     projections = pd.read_csv(Path(args.data_root) / "indiana_projections.csv")
 
     neural = None

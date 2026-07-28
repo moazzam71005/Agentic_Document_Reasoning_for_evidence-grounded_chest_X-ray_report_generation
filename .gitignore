@@ -1,0 +1,14 @@
+# Local packaging and staging
+.kaggle_upload/
+*.zip
+
+# Temporary extraction/analysis files
+tmp/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

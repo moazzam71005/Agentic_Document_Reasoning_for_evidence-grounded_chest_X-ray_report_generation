@@ -13,6 +13,14 @@ from src.evidence.quality_indicators import assess_quality
 from src.evidence.view_builder import ImageView, build_views
 
 
+def _json_default(value: Any) -> Any:
+    if hasattr(value, "item"):
+        return value.item()
+    if hasattr(value, "tolist"):
+        return value.tolist()
+    raise TypeError(f"Object of type {value.__class__.__name__} is not JSON serializable")
+
+
 @dataclass
 class Provenance:
     view_id: str
@@ -21,7 +29,7 @@ class Provenance:
     tool: str
 
     @classmethod
-    from_view(cls, view: ImageView) -> "Provenance":
+    def from_view(cls, view: ImageView) -> "Provenance":
         zone = view.params.get("row")
         if zone and view.params.get("col"):
             zone = f"{view.params['row']}_{view.params['col']}"
@@ -46,7 +54,10 @@ class EvidencePacket:
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(self.to_dict(), indent=2), encoding="utf-8")
+        path.write_text(
+            json.dumps(self.to_dict(), indent=2, default=_json_default),
+            encoding="utf-8",
+        )
 
     @classmethod
     def load(cls, path: Path) -> "EvidencePacket":
