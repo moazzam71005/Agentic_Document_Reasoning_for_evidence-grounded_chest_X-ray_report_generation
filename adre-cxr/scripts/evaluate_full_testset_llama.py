@@ -149,6 +149,10 @@ def main():
         tokenizer = transformers.AutoTokenizer.from_pretrained(args.model_id, trust_remote_code=True)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
+        terminators = [
+            tokenizer.eos_token_id,
+            tokenizer.convert_tokens_to_ids("<|eot_id|>")
+        ]
 
         # Define standard Llama-3 instruct chat template if not present
         if tokenizer.chat_template is None:
@@ -214,7 +218,7 @@ def main():
                 no_repeat_ngram_size=3,
                 length_penalty=1.0,
                 pad_token_id=tokenizer.pad_token_id,
-                eos_token_id=tokenizer.eos_token_id
+                eos_token_id=terminators
             )
         pred_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True).strip()
         zero_cache[uid_key] = pred_text
@@ -266,7 +270,7 @@ def main():
                 no_repeat_ngram_size=3,
                 length_penalty=1.0,
                 pad_token_id=tokenizer.pad_token_id,
-                eos_token_id=tokenizer.eos_token_id
+                eos_token_id=terminators
             )
         pred_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True).strip()
         few_cache[uid_key] = pred_text
@@ -319,7 +323,7 @@ def main():
                     no_repeat_ngram_size=3,
                     length_penalty=1.0,
                     pad_token_id=tokenizer.pad_token_id,
-                    eos_token_id=tokenizer.eos_token_id
+                    eos_token_id=terminators
                 )
             pred_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True).strip()
             lora_cache[uid_key] = pred_text

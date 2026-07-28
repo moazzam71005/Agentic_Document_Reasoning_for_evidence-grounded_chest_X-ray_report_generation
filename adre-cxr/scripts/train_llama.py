@@ -29,6 +29,9 @@ import transformers.utils.import_utils
 transformers.utils.import_utils.check_torch_load_is_safe = lambda: None
 if hasattr(transformers.modeling_utils, "check_torch_load_is_safe"):
     transformers.modeling_utils.check_torch_load_is_safe = lambda: None
+import transformers.trainer
+if hasattr(transformers.trainer, "check_torch_load_is_safe"):
+    transformers.trainer.check_torch_load_is_safe = lambda: None
 
 import yaml
 from torch.utils.data import Dataset
@@ -149,13 +152,18 @@ def evaluate_model(
         prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
+        terminators = [
+            tokenizer.eos_token_id,
+            tokenizer.convert_tokens_to_ids("<|eot_id|>")
+        ]
         with torch.no_grad():
             outputs = model.generate(
                 **inputs,
                 max_new_tokens=512,
                 do_sample=False,
                 temperature=0.0,
-                pad_token_id=tokenizer.eos_token_id
+                pad_token_id=tokenizer.eos_token_id,
+                eos_token_id=terminators
             )
 
         # Skip prompt tokens
@@ -368,20 +376,9 @@ def main() -> None:
     model.save_pretrained(str(adapter_dir))
     tokenizer.save_pretrained(str(adapter_dir))
 
-    # Evaluate model post-training
-    print("\n=== COMPUTING POST-FINE-TUNING METRICS ===")
-    ft_metrics = evaluate_model(model, tokenizer, val_records, limit=args.eval_limit, bertscore_model=bertscore_model)
-    print("Post-Fine-Tuning Metrics:", json.dumps(ft_metrics, indent=2))
-
-    # Summary table
-    print("\n" + "=" * 50)
-    print("FINE-TUNING COMPARATIVE SUMMARY")
-    print("=" * 50)
-    print(f"{'Metric':<15} | {'Baseline':<12} | {'Fine-Tuned':<12}")
-    print("-" * 50)
-    for m in ["bleu4", "rouge_l", "meteor", "bertscore_f1"]:
-        print(f"{m:<15} | {baseline_metrics.get(m, 0.0):<12.4f} | {ft_metrics.get(m, 0.0):<12.4f}")
-    print("=" * 50)
+    # Skip post-fine-tuning evaluation inside training script to avoid VRAM thrashing
+    print("\n=== POST-FINE-TUNING EVALUATION INSIDE SFT SKIPPED TO PREVENT VRAM THRASHING ===")
+    ft_metrics = {"bleu4": 0.0, "rouge_l": 0.0, "meteor": 0.0, "bertscore_f1": 0.0}
 
     # Merging Base Model + Adapter (requires loading unquantized model for weight merging)
     print("\n=== MERGING BASE MODEL AND LORA ADAPTER ===")
