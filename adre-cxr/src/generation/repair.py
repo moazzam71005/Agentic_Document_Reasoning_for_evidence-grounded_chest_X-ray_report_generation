@@ -10,6 +10,33 @@ from src.llm.client import LLMClient
 
 def validate_report(text: str) -> list[str]:
     errors = []
+    
+    # Reject prompt leaks and conversational helper text
+    leak_phrases = [
+        "formatting errors",
+        "repair it to include",
+        "do not add unsupported",
+        "is classified as",
+        "detailed findings paragraph",
+        "concise impression paragraph",
+        "should not output",
+        "should be output",
+        "thinking process",
+        "internal monologue",
+        "is the corrected",
+        "the answer is",
+        "original report",
+        "ground truth",
+        "evidence state",
+        "board-certified radiologist"
+    ]
+    
+    lower_text = text.lower()
+    for phrase in leak_phrases:
+        if phrase in lower_text:
+            errors.append(f"prompt_leak_detected_{phrase.replace(' ', '_')}")
+            break
+            
     if not re.search(r"(?i)findings\s*:", text):
         errors.append("missing_findings_section")
     if not re.search(r"(?i)impression\s*:", text):
