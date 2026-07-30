@@ -33,6 +33,16 @@ def _select_image(data_root: Path, projections, uid: str) -> Path | None:
     return next((path for path in candidates if path.exists()), None)
 
 
+def _select_evidence(evidence_dir: Path, uid: str) -> Path:
+    """Support legacy flat packets and nested evidence-v2 study directories."""
+    candidates = [
+        evidence_dir / f"{uid}.json",
+        evidence_dir / uid / "evidence.json",
+        evidence_dir / uid / "evidence_v1_compatible.json",
+    ]
+    return next((path for path in candidates if path.exists()), candidates[0])
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run ADRE-CXR for N IU X-ray studies")
     parser.add_argument("--data-root", default=None, help="Path to IU X-ray dataset")
@@ -80,7 +90,7 @@ def main() -> None:
         for rec in tqdm(selected, desc="Generating reports"):
             uid = str(rec["uid"])
             image_path = _select_image(data_root, projections, uid)
-            evidence_path = evidence_dir / f"{uid}.json"
+            evidence_path = _select_evidence(evidence_dir, uid)
             report_path = output_dir / f"{uid}.txt"
 
             result = {

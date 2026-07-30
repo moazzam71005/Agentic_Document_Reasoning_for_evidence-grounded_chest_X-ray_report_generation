@@ -29,7 +29,7 @@ class Provenance:
     tool: str
 
     @classmethod
-    def from_view(cls, view: ImageView) -> "Provenance":
+    def from_view(cls, view: ImageView) -> Provenance:
         zone = view.params.get("row")
         if zone and view.params.get("col"):
             zone = f"{view.params['row']}_{view.params['col']}"
@@ -60,8 +60,12 @@ class EvidencePacket:
         )
 
     @classmethod
-    def load(cls, path: Path) -> "EvidencePacket":
+    def load(cls, path: Path) -> EvidencePacket:
         data = json.loads(path.read_text(encoding="utf-8"))
+        if data.get("schema_version") == "2.0":
+            from src.evidence.serializer import v2_to_legacy_dict
+
+            data = v2_to_legacy_dict(data)
         return cls(**data)
 
 

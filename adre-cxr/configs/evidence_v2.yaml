@@ -1,0 +1,164 @@
+schema_version: "2.0"
+extractor_version: "evidence_v2.0"
+random_seed: 42
+
+paths:
+  output_dir: data/processed/evidence_v2
+
+views:
+  use_all_available: true
+  prefer_pa_over_ap: true
+  allow_lateral_only: true
+  view_weights:
+    frontal_pa: 1.0
+    frontal_ap: 0.85
+    lateral: 0.90
+    other: 0.50
+    unknown: 0.50
+
+validation:
+  minimum_width: 128
+  minimum_height: 128
+  minimum_dynamic_range: 20.0
+  maximum_saturation_fraction: 0.20
+  maximum_border_fraction: 0.35
+  minimum_blur_score: 5.0
+  reject_blank_images: true
+  saturation_low_value: 1
+  saturation_high_value: 254
+  border_width_fraction: 0.03
+  inversion_min_corner_delta: 25.0
+  warning_penalty: 0.12
+  severe_penalty: 0.35
+
+preprocessing:
+  target_size: 512
+  preserve_aspect_ratio: true
+  normalize_method: percentile
+  lower_percentile: 1.0
+  upper_percentile: 99.0
+  auto_inversion:
+    enabled: true
+  border_crop:
+    enabled: true
+    threshold_fraction: 0.02
+    background_lower_percentile: 1.0
+    background_upper_percentile: 99.0
+    minimum_foreground_delta: 2.0
+  clahe:
+    enabled: true
+    clip_limit: 2.0
+    tile_grid_size: [8, 8]
+    classification_weight: 0.50
+  original_classification_weight: 1.0
+
+classification:
+  enabled: true
+  minimum_analysis_score: 0.20
+  models:
+    - name: torchxrayvision_densenet
+      id: xrv_densenet_all
+      weights: densenet121-res224-all
+      weight: 1.0
+      enabled: true
+    - name: torchxrayvision_densenet
+      id: xrv_densenet_chex
+      weights: densenet121-res224-chex
+      weight: 0.75
+      enabled: false
+
+# IU-Xray has reports but no reliable per-pathology labels for fitting a
+# calibrator. Scores therefore remain explicitly heuristic by default.
+calibration:
+  method: none
+  calibrated: false
+  calibration_split: null
+  calibrator_version: null
+  parameters_path: null
+
+threshold_defaults:
+  absent_max: 0.15
+  probably_absent_max: 0.30
+  uncertain_max: 0.50
+  present_min: 0.70
+
+thresholds:
+  Atelectasis:
+    absent_max: 0.15
+    probably_absent_max: 0.30
+    uncertain_max: 0.50
+    present_min: 0.72
+  Cardiomegaly:
+    absent_max: 0.20
+    probably_absent_max: 0.35
+    uncertain_max: 0.55
+    present_min: 0.75
+  Effusion:
+    absent_max: 0.15
+    probably_absent_max: 0.30
+    uncertain_max: 0.50
+    present_min: 0.72
+  Pneumothorax:
+    absent_max: 0.12
+    probably_absent_max: 0.25
+    uncertain_max: 0.45
+    present_min: 0.70
+
+localization:
+  enabled: true
+  method: gradcam
+  max_regions_per_finding: 3
+  heatmap_threshold: 0.55
+  min_region_area_fraction: 0.01
+  merge_iou_threshold: 0.30
+
+anatomy:
+  enabled: true
+  method: heuristic_lung_masks
+  geometry:
+    left_lung_center: [0.34, 0.51]
+    right_lung_center: [0.66, 0.51]
+    lung_radii: [0.20, 0.36]
+    heart_center: [0.52, 0.64]
+    heart_radii: [0.19, 0.17]
+    mediastinum_box: [0.44, 0.20, 0.58, 0.70]
+
+region_analysis:
+  enabled: true
+
+legacy_fixed_crops:
+  enabled: true
+  rows: 3
+  cols: 2
+
+fusion:
+  conflict_threshold: 0.35
+  model_disagreement_threshold: 0.35
+  finding_view_weights: {}
+
+reliability:
+  model_agreement_weight: 0.30
+  view_agreement_weight: 0.25
+  image_quality_weight: 0.15
+  localization_weight: 0.15
+  anatomy_weight: 0.15
+  levels:
+    high_min: 0.80
+    moderate_min: 0.60
+    low_min: 0.40
+
+embeddings:
+  enabled: true
+  save_global: true
+  save_regions: true
+  fallback_size: [16, 16]
+
+output:
+  save_visualizations: true
+  save_embeddings: true
+  save_region_crops: true
+  save_legacy_packet: true
+  pretty_json: true
+
+cache:
+  enabled: true

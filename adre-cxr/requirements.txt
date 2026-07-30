@@ -32,5 +32,8 @@ rouge-score>=0.1
 bert-score>=0.3.13
 scipy>=1.11
 
+# Evidence-v2 development and schema tests
+pytest>=8.0
+
 # Optional local Ollama (only if you have a GPU machine)
 # ollama client uses httpx — no extra package needed

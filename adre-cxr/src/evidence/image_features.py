@@ -31,7 +31,7 @@ def cardiothoracic_ratio_proxy(img: np.ndarray) -> float:
     Rough CTR proxy from horizontal mass distribution.
     True CTR needs heart/lung segmentation; this is a fast heuristic.
     """
-    h, w = img.shape
+    h, _ = img.shape
     row_means = img.mean(axis=1)
     center = h // 2
     upper = row_means[:center].mean() if center > 0 else 0

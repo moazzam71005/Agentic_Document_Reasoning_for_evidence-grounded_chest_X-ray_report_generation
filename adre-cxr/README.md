@@ -69,6 +69,117 @@ The vision classifier needs a GPU. Use **Kaggle's free GPU** (~30 hrs/week), not
 python scripts/extract_evidence.py --data-root data/raw/chest-xrays-indiana-university --split dev --skip-neural
 ```
 
+### Evidence v2 (recommended experimental extractor)
+
+Evidence v2 changes only the visual evidence layer. Report prompts, narrative
+generation, and report metrics are unchanged. It processes every available IU
+projection, validates image quality, preserves aspect ratio, keeps original and
+CLAHE branches, records uncalibrated model scores honestly, assigns
+positive/negative/uncertain/not-assessable states, generates Grad-CAM
+model-attention regions, uses explicitly heuristic anatomy masks, fuses views,
+scores reliability, and writes audit artifacts.
+
+The default configuration is `configs/evidence_v2.yaml`. IU-Xray does not
+contain reliable pathology labels for fitting a probability calibrator, so the
+default output says `confidence_type: heuristic_model_score` and
+`calibrated: false`. Do not describe these scores as clinical probabilities.
+
+Run on Kaggle from the repository root:
+
+```bash
+pip install -r requirements.txt
+
+# Existing frozen ADRE-style split: 100 development studies
+python scripts/extract_evidence_v2.py \
+  --data-root /kaggle/input/chest-xrays-indiana-university \
+  --split dev
+
+# Existing frozen ADRE-style split: 400 test studies
+python scripts/extract_evidence_v2.py \
+  --data-root /kaggle/input/chest-xrays-indiana-university \
+  --split test
+```
+
+If Kaggle mounted the dataset under a longer path, use the directory that
+directly contains `indiana_reports.csv` and `indiana_projections.csv`.
+
+Each study is stored at:
+
+```text
+data/processed/evidence_v2/<uid>/
+  evidence.json
+  evidence_v1_compatible.json
+  prediction_summary.png
+  *_normalized.png
+  *_clahe.png
+  anatomy/
+  gradcam/
+  crops/
+  embeddings/
+```
+
+Validate before generating any reports:
+
+```bash
+python scripts/validate_evidence.py data/processed/evidence_v2
+python scripts/inspect_evidence.py data/processed/evidence_v2/<uid>/evidence.json
+python scripts/compare_evidence_versions.py \
+  --v1-dir data/processed/evidence \
+  --v2-dir data/processed/evidence_v2 \
+  --output outputs/evidence_version_comparison.json
+```
+
+The existing report pipeline can load `evidence.json` directly; the evidence
+loader converts it to the legacy packet in memory:
+
+```bash
+python scripts/run_pipeline.py \
+  --study-id <uid> \
+  --image <frontal-image-path> \
+  --evidence-json data/processed/evidence_v2/<uid>/evidence.json \
+  --output outputs/<uid>.txt
+```
+
+`run_batch.py` also recognizes the nested v2 directory automatically:
+
+```bash
+python scripts/run_batch.py \
+  --data-root data/raw/chest-xrays-indiana-university \
+  --split dev \
+  --limit 100 \
+  --evidence-dir data/processed/evidence_v2 \
+  --output-dir outputs/evidence_v2_dev
+```
+
+Before LLM report evaluation, create and manually verify a 50-100 study
+evidence-review file:
+
+```bash
+python scripts/create_evidence_review_set.py \
+  --split-file data/processed/dev_split.json \
+  --evidence-dir data/processed/evidence_v2 \
+  --size 75 \
+  --output outputs/evidence_review_set.jsonl
+
+# Fill the review fields and set verified to true after manual review.
+python scripts/evaluate_evidence.py outputs/evidence_review_set.jsonl
+```
+
+Controlled evidence ablations use the same split and configuration:
+
+```bash
+python scripts/extract_evidence_v2.py \
+  --data-root <iu-dataset-root> \
+  --split dev \
+  --ablation 1 \
+  --output-dir data/processed/evidence_v2_ablation_1
+```
+
+Repeat `--ablation 1` through `--ablation 7`. Ablation 7 enables the optional
+second TorchXRayVision model configured in the YAML. Cache keys include image
+checksums, model versions, configuration hash, and extractor version; use
+`--force` only when intentionally rebuilding a matching result.
+
 ### 6. Guideline corpus (manual)
 
 Download and place PDFs in `data/guidelines/`:

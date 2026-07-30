@@ -176,6 +176,8 @@ def main() -> None:
     parser.add_argument("--eval-only", action="store_true", help="Only run baseline evaluation on validation split")
     parser.add_argument("--eval-limit", type=int, default=None, help="Limit number of validation records for evaluation speed")
     parser.add_argument("--epochs", type=int, default=3, help="Number of SFT training epochs")
+    parser.add_argument("--save-steps", type=int, default=100, help="Validate and save every N optimizer steps")
+    parser.add_argument("--skip-merge", action="store_true", help="Keep the best LoRA adapter without writing a second merged base model")
     args = parser.parse_args()
 
     # Load project config
@@ -301,8 +303,14 @@ def main() -> None:
         lr_scheduler_type="cosine",
         warmup_ratio=0.05,
         logging_steps=10,
-        save_steps=100,
-        save_total_limit=2,
+        eval_strategy="steps",
+        eval_steps=args.save_steps,
+        save_strategy="steps",
+        save_steps=args.save_steps,
+        save_total_limit=1,
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
         bf16=True,
         fp16=False,
         gradient_checkpointing=True,
@@ -321,6 +329,7 @@ def main() -> None:
         model=model,
         args=training_args,
         train_dataset=train_dataset,
+        eval_dataset=val_dataset,
         data_collator=data_collator,
     )
 
@@ -336,6 +345,7 @@ def main() -> None:
             print(f"Found existing checkpoints. Resuming training from: {resume}")
 
     trainer.train(resume_from_checkpoint=resume)
+    print(f"Best validation checkpoint: {trainer.state.best_model_checkpoint}")
 
     # Save adapter
     adapter_dir = ROOT / "weights" / "qwen2.5-3b-lora"
@@ -357,6 +367,13 @@ def main() -> None:
     for m in ["bleu4", "rouge_l", "meteor", "bertscore_f1"]:
         print(f"{m:<15} | {baseline_metrics.get(m, 0.0):<12.4f} | {ft_metrics.get(m, 0.0):<12.4f}")
     print("=" * 50)
+
+    if args.skip_merge:
+        print(
+            "\nSkipping merged-model export. The best LoRA adapter and tokenizer "
+            f"are saved at {adapter_dir}."
+        )
+        return
 
     # Merging Base Model + Adapter (requires loading unquantized model for weight merging)
     print("\n=== MERGING BASE MODEL AND LORA ADAPTER ===")
