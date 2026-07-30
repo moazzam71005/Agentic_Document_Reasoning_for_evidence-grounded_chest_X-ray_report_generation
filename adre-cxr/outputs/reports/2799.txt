@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates moderate confidence findings of atelectasis in the upper right, mid left, mid right, lower left, and lower right lung zones. Additionally, a mass is noted in the upper left lung zone with moderate confidence. The inspiration is labeled as poor, exposure is adequate, and rotation is minimal. 
+
+IMPRESSION:
+The patient's dyspnea may be related to the presence of atelectasis in multiple lung zones or the mass in the upper left lung zone.

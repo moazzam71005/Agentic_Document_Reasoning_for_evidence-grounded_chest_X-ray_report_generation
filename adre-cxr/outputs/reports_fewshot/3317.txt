@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates an infiltration in the upper left zone, a mass in the mid left zone, and an effusion in the lower left zone. The image is overexposed, with poor inspiration and minimal rotation. 
+
+IMPRESSION:
+Upper left infiltration, mid left mass, and lower left effusion.

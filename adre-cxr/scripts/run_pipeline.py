@@ -29,6 +29,11 @@ def main() -> None:
     parser.add_argument("--index-dir", default="data/processed/index")
     parser.add_argument("--no-rag", action="store_true")
     parser.add_argument("--no-agentic", action="store_true")
+    parser.add_argument(
+        "--few-shot",
+        action="store_true",
+        help="Inject fixed training-set examples into Stage B prompt",
+    )
     parser.add_argument("--output", default="output_report.txt")
     args = parser.parse_args()
 
@@ -59,8 +64,10 @@ def main() -> None:
         )
 
     structured = generate_structured_findings(state, llm)
-    report = generate_narrative_report(structured, state, llm)
-    if validate_report(report):
+    report = generate_narrative_report(
+        structured, state, llm, use_few_shot=args.few_shot
+    )
+    if not validate_report(report):
         report = repair_report(report, structured, state, llm)
 
     out = Path(args.output)

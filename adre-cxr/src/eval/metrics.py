@@ -25,7 +25,15 @@ def compute_all_metrics(
     smoothie = SmoothingFunction().method1
     refs_tokens = [[r.split()] for r in references]
     hyps_tokens = [p.split() for p in predictions]
-    bleu4 = corpus_bleu(refs_tokens, hyps_tokens, weights=(0.25, 0.25, 0.25, 0.25), smoothing_function=smoothie)
+    bleu_kwargs = {"smoothing_function": smoothie}
+    bleu1 = corpus_bleu(refs_tokens, hyps_tokens, weights=(1.0, 0, 0, 0), **bleu_kwargs)
+    bleu2 = corpus_bleu(refs_tokens, hyps_tokens, weights=(0.5, 0.5, 0, 0), **bleu_kwargs)
+    bleu3 = corpus_bleu(
+        refs_tokens, hyps_tokens, weights=(1 / 3, 1 / 3, 1 / 3, 0), **bleu_kwargs
+    )
+    bleu4 = corpus_bleu(
+        refs_tokens, hyps_tokens, weights=(0.25, 0.25, 0.25, 0.25), **bleu_kwargs
+    )
 
     rouge = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
     rouge_scores = [rouge.score(r, p)["rougeL"].fmeasure for p, r in zip(predictions, references)]
@@ -43,6 +51,9 @@ def compute_all_metrics(
     bertscore_f1 = float(f1.mean())
 
     return {
+        "bleu1": float(bleu1),
+        "bleu2": float(bleu2),
+        "bleu3": float(bleu3),
         "bleu4": float(bleu4),
         "rouge_l": rouge_l,
         "meteor": meteor,

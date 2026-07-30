@@ -36,7 +36,7 @@ llm:
   model: llama-3.3-70b-versatile
 
 vision:
-  classifier_weights: nih-rsna-14
+  classifier_weights: densenet121-res224-nih
   zone_rows: 3        # upper / mid / lower
   zone_cols: 2        # left / right
 

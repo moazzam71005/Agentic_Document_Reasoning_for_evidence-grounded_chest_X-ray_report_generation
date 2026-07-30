@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates evidence of atelectasis in the lower left and lower right zones, with high confidence. Additionally, there is pleural thickening noted in the mid left zone, also with high confidence. A pneumothorax is seen in the upper right zone, with high confidence. The image quality is compromised by poor inspiration, but the exposure is adequate, with a dynamic range of 170.0.
+
+IMPRESSION:
+The patient has signs of bilateral lower lobe atelectasis, pleural thickening in the mid left zone, and a pneumothorax in the upper right zone, which may be contributing to the patient's symptoms of shortness of breath.

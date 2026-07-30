@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates infiltrates in the upper and lower left lung zones. There is pleural thickening in the mid left lung zone. A mass is present in the mid right lung zone. A pneumothorax is seen in the lower right lung zone. The image is overexposed, with poor inspiration and minimal rotation.
+
+IMPRESSION:
+Bilateral lung infiltrates, left-sided pleural thickening, right-sided mass, and right-sided pneumothorax.

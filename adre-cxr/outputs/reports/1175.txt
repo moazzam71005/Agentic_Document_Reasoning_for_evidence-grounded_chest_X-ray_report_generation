@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates moderate confidence findings of atelectasis in the upper right and lower left lung zones. Additionally, a mass is noted in the mid left lung zone with moderate confidence. The quality of the image is adequate, although inspiration is noted to be poor and there is minimal rotation. 
+
+IMPRESSION:
+Pulmonary pathology is suspected due to the presence of atelectasis and masses, and further evaluation is needed to determine the extent of disease.

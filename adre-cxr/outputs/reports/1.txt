@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates multiple masses in the left lung, with high confidence findings in the upper, mid, and lower left zones. Additionally, there is evidence of atelectasis in the upper right zone and consolidation in the lower right zone. The image quality is compromised by overexposure, poor inspiration, and mild rotation.
+
+IMPRESSION:
+The radiographic findings are suggestive of multifocal lung masses, with associated atelectasis and consolidation, which may be indicative of an underlying infectious or inflammatory process, such as pneumonia or tuberculosis, given the patient's positive TB test.

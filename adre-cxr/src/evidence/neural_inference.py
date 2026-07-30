@@ -8,6 +8,7 @@ import numpy as np
 
 try:
     import torch
+    import torchvision
     import torchxrayvision as xrv
     HAS_TXRV = True
 except ImportError:
@@ -17,7 +18,7 @@ except ImportError:
 class NeuralInference:
     """Global pathology probabilities via TorchXRayVision DenseNet."""
 
-    def __init__(self, weights: str = "nih-rsna-14"):
+    def __init__(self, weights: str = "densenet121-res224-nih"):
         if not HAS_TXRV:
             raise ImportError(
                 "torchxrayvision not installed. "
@@ -25,14 +26,31 @@ class NeuralInference:
             )
         self.model = xrv.models.DenseNet(weights=weights)
         self.model.eval()
+        if torch.cuda.is_available():
+            self.model = self.model.cuda()
         self.pathologies = list(self.model.pathologies)
+        self.transform = torchvision.transforms.Compose([
+            xrv.datasets.XRayCenterCrop(),
+            xrv.datasets.XRayResizer(224),
+        ])
+
+    def _prepare_tensor(self, img: np.ndarray) -> "torch.Tensor":
+        if img.ndim == 3:
+            img = img.mean(axis=-1)
+        img_norm = xrv.datasets.normalize(img, 255)
+        if img_norm.ndim == 2:
+            img_norm = img_norm[None, ...]
+        img_ready = self.transform(img_norm)
+        t = torch.from_numpy(img_ready).unsqueeze(0)
+        if torch.cuda.is_available():
+            t = t.cuda()
+        return t
 
     def predict(self, img: np.ndarray) -> dict[str, float]:
-        """img: 2D grayscale float array."""
-        img_norm = xrv.datasets.normalize(img, 0, 255)
-        tensor = torch.from_numpy(img_norm).unsqueeze(0).unsqueeze(0)
+        """img: 2D grayscale float array (0–255)."""
+        t = self._prepare_tensor(img)
         with torch.no_grad():
-            probs = torch.sigmoid(self.model(tensor))[0].numpy()
+            probs = torch.sigmoid(self.model(t))[0].cpu().numpy()
         return {p: float(probs[i]) for i, p in enumerate(self.pathologies)}
 
     def global_abnormality_score(self, probs: dict[str, float]) -> float:

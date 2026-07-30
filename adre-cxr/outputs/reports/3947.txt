@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates evidence of atelectasis in the lower right lung zone, pleural thickening in the mid left lung zone, a mass in the mid right lung zone, and an effusion in the lower left lung zone. The inspiration is noted to be poor, and the exposure is adequate with a dynamic range of 212.0.
+
+IMPRESSION:
+The chest X-ray findings are consistent with preprocedure evaluation prior to bone marrow transplant, showing atelectasis, pleural thickening, mass, and effusion, which may have implications for the patient's underlying condition and potential transplantation procedure.

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from typing import Any
 
 import httpx
@@ -81,14 +82,31 @@ class LLMClient:
         if json_mode:
             payload["response_format"] = {"type": "json_object"}
 
-        resp = httpx.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={"Authorization": f"Bearer {os.environ['GROQ_API_KEY']}"},
-            json=payload,
-            timeout=120.0,
-        )
-        resp.raise_for_status()
-        return resp.json()["choices"][0]["message"]["content"]
+        headers = {"Authorization": f"Bearer {os.environ['GROQ_API_KEY']}"}
+        last_resp = None
+        for attempt in range(8):
+            resp = httpx.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=120.0,
+            )
+            last_resp = resp
+            if resp.status_code == 429:
+                retry_after = resp.headers.get("retry-after")
+                # Clamp provider Retry-After (can be hours on daily quota)
+                raw = float(retry_after) if retry_after else min(2 ** attempt * 8, 90)
+                wait = min(raw, 120.0)
+                print(
+                    f"[groq] rate limited, waiting {wait:.0f}s "
+                    f"(attempt {attempt + 1}/8; provider asked {raw:.0f}s)"
+                )
+                time.sleep(wait)
+                continue
+            resp.raise_for_status()
+            return resp.json()["choices"][0]["message"]["content"]
+        last_resp.raise_for_status()
+        return last_resp.json()["choices"][0]["message"]["content"]
 
     def _chat_gemini(
         self, messages, temperature, top_p, json_mode

@@ -8,9 +8,26 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from src.evidence.image_features import extract_features
 from src.evidence.quality_indicators import assess_quality
 from src.evidence.view_builder import ImageView, build_views
+
+
+def to_json_safe(obj: Any) -> Any:
+    """Convert numpy scalars/arrays to native Python types for JSON."""
+    if isinstance(obj, dict):
+        return {k: to_json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [to_json_safe(v) for v in obj]
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, np.floating):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    return obj
 
 
 @dataclass
@@ -21,7 +38,7 @@ class Provenance:
     tool: str
 
     @classmethod
-    from_view(cls, view: ImageView) -> "Provenance":
+    def from_view(cls, view: ImageView) -> "Provenance":
         zone = view.params.get("row")
         if zone and view.params.get("col"):
             zone = f"{view.params['row']}_{view.params['col']}"
@@ -32,6 +49,7 @@ class Provenance:
 class EvidencePacket:
     study_id: str
     image_path: str
+    filename: str = ""
     patient_metadata: dict[str, Any] = field(default_factory=dict)
     global_pathology_probs: dict[str, float] = field(default_factory=dict)
     global_abnormality_score: float = 0.0
@@ -46,12 +64,16 @@ class EvidencePacket:
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(self.to_dict(), indent=2), encoding="utf-8")
+        path.write_text(
+            json.dumps(to_json_safe(self.to_dict()), indent=2),
+            encoding="utf-8",
+        )
 
     @classmethod
     def load(cls, path: Path) -> "EvidencePacket":
         data = json.loads(path.read_text(encoding="utf-8"))
-        return cls(**data)
+        valid = {f.name for f in cls.__dataclass_fields__.values()}
+        return cls(**{k: v for k, v in data.items() if k in valid})
 
 
 def build_evidence_packet(

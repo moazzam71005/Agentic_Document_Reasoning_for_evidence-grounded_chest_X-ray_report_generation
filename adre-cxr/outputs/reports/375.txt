@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates a high confidence finding of atelectasis in the lower left zone. Additionally, there is a high confidence finding of consolidation in the upper right zone. A mass is also noted in the mid right zone with high confidence. The quality of the image is adequate, although inspiration is noted to be poor and there is minimal rotation.
+
+IMPRESSION:
+The radiographic findings suggest the presence of atelectasis, consolidation, and a mass, which may be indicative of an underlying pulmonary pathology, such as pneumonia or pleural disease, although a definitive diagnosis cannot be made based on the radiograph alone.

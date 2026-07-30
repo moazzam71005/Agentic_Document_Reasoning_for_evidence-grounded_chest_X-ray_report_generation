@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates upper left lobe atelectasis, a mid left pneumothorax, lower left pleural effusion, and a mass in the lower right lung zone. The image is overexposed, with poor inspiration and minimal rotation. 
+
+IMPRESSION:
+Upper left lobe atelectasis, mid left pneumothorax, lower left pleural effusion, and a mass in the lower right lung zone.

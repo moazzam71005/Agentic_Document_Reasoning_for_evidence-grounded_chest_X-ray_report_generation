@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates multifocal infiltrates in the upper left and right zones, as well as the mid left zone, with high confidence. Additionally, there are masses identified in the mid right and lower right zones, also with high confidence. An effusion is noted in the lower left zone, again with high confidence. The quality of the image is noted to be adequate in terms of exposure, though inspiration is deemed poor and there is mild rotation. 
+
+IMPRESSION:
+The presence of multifocal infiltrates, masses, and an effusion suggests a complex pulmonary process, which may be indicative of an infectious or inflammatory condition, such as pneumonia, among other possibilities. Further clinical correlation and additional imaging or laboratory studies may be necessary to determine the underlying cause of these findings.

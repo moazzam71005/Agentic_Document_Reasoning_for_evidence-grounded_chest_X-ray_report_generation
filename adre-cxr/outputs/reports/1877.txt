@@ -1,0 +1,5 @@
+FINDINGS:
+The chest X-ray demonstrates multiple masses, with one located in the mid left zone, one in the mid right zone, and one in the lower right zone, all with high confidence. Additionally, there is evidence of an effusion in the lower left zone, also with high confidence. The lung fields are poorly inspirated, and the rotation is minimal. The exposure is adequate.
+
+IMPRESSION:
+The presence of multiple masses and an effusion suggests a possible underlying pleural disease or malignancy. Further evaluation with additional imaging modalities, such as CT, and correlation with clinical history and laboratory results is recommended to determine the etiology of these findings.
