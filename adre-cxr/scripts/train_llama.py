@@ -188,6 +188,15 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=3, help="Number of SFT training epochs")
     parser.add_argument("--save-steps", type=int, default=100, help="Validate and save every N optimizer steps")
     parser.add_argument("--skip-merge", action="store_true", help="Keep the best LoRA adapter without writing a second merged base model")
+    parser.add_argument(
+        "--split-mode",
+        choices=["heldout-500", "full-90-10"],
+        default="heldout-500",
+        help=(
+            "heldout-500 excludes the frozen 100/400 ADRE studies; "
+            "full-90-10 trains on a deterministic 90%% split of every valid report"
+        ),
+    )
     args = parser.parse_args()
 
     # Load project config
@@ -215,12 +224,17 @@ def main() -> None:
     shuffled = parsed.copy()
     rng.shuffle(shuffled)
 
-    # SFT data uses records at indices 500+ to ensure zero overlap with dev/test sets
-    sft_records = shuffled[500:]
+    # The default protects the frozen ADRE dev/test studies from training leakage.
+    # full-90-10 is available for deployment-oriented training where that frozen
+    # split will not subsequently be reported as an unseen test set.
+    sft_records = shuffled if args.split_mode == "full-90-10" else shuffled[500:]
     train_size = int(0.9 * len(sft_records))
     train_records = sft_records[:train_size]
     val_records = sft_records[train_size:]
-    print(f"Data splits -> SFT Train: {len(train_records)}, Validation: {len(val_records)}")
+    print(
+        f"Split mode: {args.split_mode} | "
+        f"SFT Train: {len(train_records)}, Validation: {len(val_records)}"
+    )
 
     # Load model and tokenizer
     print(f"Loading tokenizer for {args.model_id}...")
