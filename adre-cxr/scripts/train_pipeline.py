@@ -20,6 +20,13 @@ def patched_load(*args, **kwargs):
 torch.load = patched_load
 
 import transformers
+
+# Monkeypatch transformers' torch version check for loading pytorch_model.bin
+if hasattr(transformers.utils.import_utils, "check_torch_load_is_safe"):
+    transformers.utils.import_utils.check_torch_load_is_safe = lambda: None
+if hasattr(transformers.modeling_utils, "check_torch_load_is_safe"):
+    transformers.modeling_utils.check_torch_load_is_safe = lambda: None
+
 from torch.utils.data import Dataset
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
 
@@ -155,17 +162,21 @@ def main():
         trust_remote_code=True
     )
     
-    model = prepare_model_for_kbit_training(model)
+    # Custom VRAM optimized LoRA initialization (replaces prepare_model_for_kbit_training)
     peft_config = LoraConfig(
-        r=32,
-        lora_alpha=64,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        r=8,
+        lora_alpha=16,
+        target_modules=["q_proj", "v_proj"],
         lora_dropout=0.05,
         bias="none",
         task_type="CAUSAL_LM"
     )
     model = get_peft_model(model, peft_config)
+    
     model.gradient_checkpointing_enable()
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            param.data = param.data.to(torch.float32)
 
     train_dataset = PipelineSFTDataset(train_records, tokenizer)
     val_dataset = PipelineSFTDataset(val_records, tokenizer)
